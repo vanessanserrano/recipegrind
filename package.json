@@ -1,0 +1,19 @@
+{
+  "name": "recipegrind",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm:dev:*\"",
+    "dev:api": "npm --workspace apps/api run dev",
+    "dev:finder": "npm --workspace apps/recipe-finder run dev",
+    "dev:explorer": "npm --workspace apps/ingredient-explorer run dev",
+    "build": "npm -ws run build",
+    "test": "npm -ws run test"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
