@@ -17,9 +17,6 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/recipe-finder
     steps:
       - uses: actions/checkout@v4
 
@@ -28,13 +25,13 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-          cache-dependency-path: apps/recipe-finder/package-lock.json
+          cache-dependency-path: package-lock.json   # ROOT lockfile
 
-      - name: Install deps
+      - name: Install deps (root, all workspaces)
         run: npm ci
 
-      - name: Build
-        run: npm run build
+      - name: Build recipe-finder workspace
+        run: npm run -w apps/recipe-finder build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
