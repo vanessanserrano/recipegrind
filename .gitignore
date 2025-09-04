@@ -1,0 +1,15 @@
+# dependencies
+**/node_modules
+**/dist
+*.log
+
+# env & local configs
+.env
+.env.*
+.DS_Store
+
+# prisma build artifacts
+**/.prisma
+
+# vite/next outputs (belt & suspenders)
+apps/**/dist
