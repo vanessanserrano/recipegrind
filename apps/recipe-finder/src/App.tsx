@@ -1,5 +1,20 @@
 import React from "react";
-import { Container, Stack, TextField, MenuItem, Select, InputLabel, FormControl, Slider, Button, Chip, Grid, Card, CardContent, Typography } from "@mui/material";
+import {
+  Container,
+  Stack,
+  TextField,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
+  Slider,
+  Button,
+  Chip,
+  Card,
+  CardContent,
+  Typography
+} from "@mui/material";
+import Grid from "@mui/material/Grid2"; // <-- Grid v2 import
 import { useQuery } from "@tanstack/react-query";
 import { searchRecipes } from "./lib/api";
 
@@ -60,7 +75,7 @@ export default function App() {
 
         <Grid container spacing={2}>
           {data?.results?.map((r: any) => (
-            <Grid item xs={12} sm={6} md={4} key={r.id}>
+            <Grid xs={12} sm={6} md={4} key={r.id}>
               <Card>
                 <CardContent>
                   <Typography variant="h6">{r.title}</Typography>
