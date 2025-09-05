@@ -10,12 +10,10 @@ function stripHtml(html: string) {
 }
 
 function extractSteps(data: any): string[] {
-  // 1) Prefer structured steps
   const ai = data?.analyzedInstructions?.[0]?.steps;
   if (Array.isArray(ai) && ai.length) {
     return ai.map((s: any) => (s.step || "").toString().trim()).filter(Boolean);
   }
-  // 2) If HTML has <li>…</li>, parse with a safe regex loop (no matchAll)
   const html = data?.instructions || "";
   if (/<li/i.test(html)) {
     const items: string[] = [];
@@ -26,7 +24,6 @@ function extractSteps(data: any): string[] {
     }
     return items.filter(Boolean);
   }
-  // 3) Fallback: sentence-split a cleaned paragraph
   const text = stripHtml(html || data?.summary || "");
   if (!text) return [];
   return text
@@ -48,21 +45,52 @@ export default function RecipeDetail() {
 
   const ingredients: Array<{ original: string }> = data.extendedIngredients ?? [];
   const steps = extractSteps(data);
-  const hero = data.image || (data.id ? `https://img.spoonacular.com/recipes/${data.id}-636x393.jpg` : "");
+
+  // Build a crisp, responsive hero image with srcSet if we have a Spoonacular id
+  const imgId = data.id as number | undefined;
+  const heroSrc =
+    data.image ||
+    (imgId ? `https://img.spoonacular.com/recipes/${imgId}-636x393.jpg` : "");
+  const heroSrcSet = imgId
+    ? [
+        `https://img.spoonacular.com/recipes/${imgId}-312x231.jpg 312w`,
+        `https://img.spoonacular.com/recipes/${imgId}-480x360.jpg 480w`,
+        `https://img.spoonacular.com/recipes/${imgId}-556x370.jpg 556w`,
+        `https://img.spoonacular.com/recipes/${imgId}-636x393.jpg 636w`,
+      ].join(", ")
+    : undefined;
 
   return (
     <Container sx={{ py: 4 }}>
       <Stack spacing={3}>
         <Button component={Link} to="/" variant="outlined">← Back to results</Button>
 
-        {/* Hero image */}
-        {hero ? (
-          <Box sx={{ width: "100%", maxHeight: 360, overflow: "hidden", borderRadius: 2, boxShadow: 2 }}>
+        {/* Hero image with aspect ratio and no cropping */}
+        {heroSrc ? (
+          <Box
+            sx={{
+              width: "100%",
+              maxWidth: 900,
+              mx: "auto",
+              aspectRatio: "4 / 3",
+              borderRadius: 2,
+              overflow: "hidden",
+              bgcolor: "action.hover",
+              boxShadow: 2,
+            }}
+          >
             <img
-              src={hero}
+              src={heroSrc}
+              srcSet={heroSrcSet}
+              sizes="(max-width: 600px) 100vw, 900px"
               alt={data.title}
               loading="lazy"
-              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "contain",   // show full image, no zoom/crop
+                display: "block"
+              }}
             />
           </Box>
         ) : null}

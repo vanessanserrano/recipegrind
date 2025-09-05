@@ -1,7 +1,7 @@
 import React from "react";
 import {
   Container, Stack, TextField, MenuItem, Select, InputLabel,
-  FormControl, Slider, Button, Chip, Card, CardContent, Typography, Box
+  FormControl, Slider, Button, Chip, Card, CardContent, Typography, Box, Alert
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -23,6 +23,9 @@ export default function RecipeList() {
     if (q.trim().length === 0) return;
     refetch();
   };
+
+  const hasResults = Array.isArray(data?.results) && data.results.length > 0;
+  const searched = data !== undefined || isFetching || !!error;
 
   return (
     <Container sx={{ py: 4 }}>
@@ -63,9 +66,19 @@ export default function RecipeList() {
             </Select>
           </FormControl>
 
-          <Stack sx={{ width: 240 }}>
-            <Typography variant="caption">Max Ready Time (min)</Typography>
-            <Slider step={5} min={5} max={120} value={maxReadyTime ?? 30} onChange={(_, v)=>setMaxReadyTime(v as number)} />
+          <Stack sx={{ width: 260 }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Typography variant="caption">Max Ready Time</Typography>
+              <Chip size="small" label={`${maxReadyTime ?? 30} min`} />
+            </Stack>
+            <Slider
+              step={5}
+              min={5}
+              max={120}
+              value={maxReadyTime ?? 30}
+              onChange={(_, v)=>setMaxReadyTime(v as number)}
+              valueLabelDisplay="auto"   // shows minutes while sliding
+            />
           </Stack>
 
           <Button variant="contained" onClick={doSearch} disabled={isFetching || q.trim().length===0}>
@@ -73,17 +86,22 @@ export default function RecipeList() {
           </Button>
         </Stack>
 
-        {/* Helpful empty state */}
-        {!data && !isFetching && !error && (
+        {/* Helpful initial state */}
+        {!searched && (
           <Typography variant="body2" color="text.secondary">
             Type a recipe idea above and press <b>Search</b>.
           </Typography>
         )}
 
+        {/* No results state */}
+        {searched && !isFetching && !error && !hasResults && (
+          <Alert severity="info">No results found. Try different keywords or relax filters.</Alert>
+        )}
+
         {error ? <Typography color="error">Search failed. Try a different query.</Typography> : null}
 
         {/* Results grid with thumbnail + text */}
-        {data?.results?.length ? (
+        {hasResults && (
           <Box
             sx={{
               display: "grid",
@@ -133,7 +151,7 @@ export default function RecipeList() {
               );
             })}
           </Box>
-        ) : null}
+        )}
 
         {isFetching ? <Typography>Loading…</Typography> : null}
       </Stack>
