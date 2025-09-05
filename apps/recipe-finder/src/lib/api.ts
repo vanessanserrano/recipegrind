@@ -9,3 +9,10 @@ export async function searchRecipes(params: { q: string; diet?: string; cuisine?
   if (!r.ok) throw new Error(`API ${r.status}`);
   return r.json();
 }
+
+export async function getRecipe(id: string) {
+  const url = new URL(`/api/recipes/${id}`, API_BASE);
+  const r = await fetch(url.toString());
+  if (!r.ok) throw new Error(`API ${r.status}`);
+  return r.json();
+}

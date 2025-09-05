@@ -83,3 +83,29 @@ app.get("/api/favorites", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`API listening on http://localhost:${PORT}`);
 });
+
+// Single recipe details (ingredients + instructions)
+app.get("/api/recipes/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const params = new URLSearchParams({
+      apiKey: KEY,
+      includeNutrition: "false"
+    });
+    const url = `${API}/recipes/${id}/information?${params.toString()}`;
+
+    const cached = cache.get(url);
+    if (cached) return res.json(cached);
+
+    const r = await fetch(url, { headers: { "x-api-key": KEY } });
+    if (!r.ok) {
+      const text = await r.text();
+      return res.status(r.status).json({ error: "Upstream error", details: text });
+    }
+    const data = await r.json();
+    cache.set(url, data);
+    res.json(data);
+  } catch (e: any) {
+    res.status(500).json({ error: e?.message ?? "Unknown error" });
+  }
+});
