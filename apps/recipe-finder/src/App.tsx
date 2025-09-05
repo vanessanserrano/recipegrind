@@ -1,20 +1,9 @@
 import React from "react";
 import {
-  Container,
-  Stack,
-  TextField,
-  MenuItem,
-  Select,
-  InputLabel,
-  FormControl,
-  Slider,
-  Button,
-  Chip,
-  Card,
-  CardContent,
-  Typography
+  Container, Stack, TextField, MenuItem, Select, InputLabel,
+  FormControl, Slider, Button, Chip, Card, CardContent, Typography
 } from "@mui/material";
-import Grid from "@mui/material/Grid2"; // <-- Grid v2 import
+import Grid from "@mui/material/Unstable_Grid2"; // v5 path
 import { useQuery } from "@tanstack/react-query";
 import { searchRecipes } from "./lib/api";
 
@@ -30,7 +19,7 @@ export default function App() {
     enabled: false,
   });
 
-  React.useEffect(() => { refetch(); }, []); // initial fetch
+  React.useEffect(() => { refetch(); }, []);
 
   return (
     <Container sx={{ py: 4 }}>
