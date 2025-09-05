@@ -10,17 +10,23 @@ function stripHtml(html: string) {
 }
 
 function extractSteps(data: any): string[] {
+  // 1) Prefer structured steps
   const ai = data?.analyzedInstructions?.[0]?.steps;
   if (Array.isArray(ai) && ai.length) {
     return ai.map((s: any) => (s.step || "").toString().trim()).filter(Boolean);
   }
+  // 2) If HTML has <li>…</li>, parse with a safe regex loop (no matchAll)
   const html = data?.instructions || "";
   if (/<li/i.test(html)) {
-    const items = Array.from(html.matchAll(/<li[^>]*>(.*?)<\/li>/gi))
-      .map((m) => stripHtml(String(m[1] ?? "")))
-      .filter(Boolean);
-    return items;
+    const items: string[] = [];
+    const re = /<li[^>]*>(.*?)<\/li>/gi;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(html)) !== null) {
+      items.push(stripHtml(String(m[1] ?? "")));
+    }
+    return items.filter(Boolean);
   }
+  // 3) Fallback: sentence-split a cleaned paragraph
   const text = stripHtml(html || data?.summary || "");
   if (!text) return [];
   return text
@@ -49,10 +55,15 @@ export default function RecipeDetail() {
       <Stack spacing={3}>
         <Button component={Link} to="/" variant="outlined">← Back to results</Button>
 
+        {/* Hero image */}
         {hero ? (
           <Box sx={{ width: "100%", maxHeight: 360, overflow: "hidden", borderRadius: 2, boxShadow: 2 }}>
-            <img src={hero} alt={data.title} loading="lazy"
-                 style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+            <img
+              src={hero}
+              alt={data.title}
+              loading="lazy"
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            />
           </Box>
         ) : null}
 
