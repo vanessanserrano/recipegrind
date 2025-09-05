@@ -6,3 +6,5 @@
 .DS_Store
 **/.prisma
 apps/**/dist
+
+!apps/recipe-finder/.env.production
