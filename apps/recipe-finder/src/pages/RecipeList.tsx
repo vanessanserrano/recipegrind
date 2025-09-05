@@ -62,6 +62,7 @@ export default function RecipeList() {
 
         {error ? <Typography color="error">Search failed. Try a different query.</Typography> : null}
 
+        {/* Results grid with thumbnail + text */}
         <Box
           sx={{
             display: "grid",
@@ -69,24 +70,48 @@ export default function RecipeList() {
             gap: 2
           }}
         >
-          {data?.results?.map((r: any) => (
-            <Card
-              key={r.id}
-              component={Link}
-              to={`/recipe/${r.id}`}
-              sx={{ textDecoration: "none", ":hover": { boxShadow: 6 }, transition: "box-shadow .2s ease" }}
-            >
-              <CardContent>
-                <Typography variant="h6">{r.title}</Typography>
-                <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: "wrap" }}>
-                  {r.readyInMinutes ? <Chip size="small" label={`${r.readyInMinutes} min`} /> : null}
-                  {r.vegan ? <Chip size="small" label="Vegan" /> : null}
-                  {r.vegetarian ? <Chip size="small" label="Vegetarian" /> : null}
-                  {r.glutenFree ? <Chip size="small" label="Gluten Free" /> : null}
-                </Stack>
-              </CardContent>
-            </Card>
-          ))}
+          {data?.results?.map((r: any) => {
+            const img = r.image || (r.id ? `https://img.spoonacular.com/recipes/${r.id}-312x231.jpg` : "");
+            return (
+              <Card
+                key={r.id}
+                component={Link}
+                to={`/recipe/${r.id}`}
+                sx={{ textDecoration: "none", ":hover": { boxShadow: 6 }, transition: "box-shadow .2s ease" }}
+              >
+                <CardContent sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}>
+                  <Box
+                    sx={{
+                      width: 64,
+                      height: 64,
+                      borderRadius: 1,
+                      overflow: "hidden",
+                      flexShrink: 0,
+                      bgcolor: "action.hover",
+                    }}
+                  >
+                    {/* small thumbnail */}
+                    <img
+                      src={img}
+                      alt={r.title}
+                      loading="lazy"
+                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                    />
+                  </Box>
+
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="h6" noWrap title={r.title}>{r.title}</Typography>
+                    <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: "wrap" }}>
+                      {r.readyInMinutes ? <Chip size="small" label={`${r.readyInMinutes} min`} /> : null}
+                      {r.vegan ? <Chip size="small" label="Vegan" /> : null}
+                      {r.vegetarian ? <Chip size="small" label="Vegetarian" /> : null}
+                      {r.glutenFree ? <Chip size="small" label="Gluten Free" /> : null}
+                    </Stack>
+                  </Box>
+                </CardContent>
+              </Card>
+            );
+          })}
         </Box>
 
         {isFetching ? <Typography>Loading…</Typography> : null}
