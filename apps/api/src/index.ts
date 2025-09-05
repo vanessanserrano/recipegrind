@@ -109,3 +109,54 @@ app.get("/api/recipes/:id", async (req, res) => {
     res.status(500).json({ error: e?.message ?? "Unknown error" });
   }
 });
+// Find by ingredients (reverse pantry)
+app.get("/api/by-ingredients", async (req, res) => {
+  try {
+    const ing = req.query.ingredients;
+    const ingredients = Array.isArray(ing) ? ing.join(",") : String(ing || "");
+    if (!ingredients) return res.status(400).json({ error: "ingredients required (comma list)" });
+
+    const number = Math.min(Number(req.query.limit) || 20, 50);
+    const ranking = req.query.ranking?.toString() || "1"; // 1=max used, 2=min missing
+
+    const params = new URLSearchParams({
+      apiKey: KEY,
+      ingredients,
+      number: String(number),
+      ignorePantry: "true",
+      ranking
+    });
+
+    const url = `${API}/recipes/findByIngredients?${params.toString()}`;
+    const cached = cache.get(url);
+    if (cached) return res.json(cached);
+
+    const r = await fetch(url, { headers: { "x-api-key": KEY } });
+    if (!r.ok) {
+      const text = await r.text();
+      return res.status(r.status).json({ error: "Upstream error", details: text });
+    }
+    const list = await r.json();
+    const normalized = (list || []).map((it: any) => {
+      const used = it.usedIngredientCount ?? 0;
+      const missed = it.missedIngredientCount ?? 0;
+      const denom = used + missed || 1;
+      return {
+        id: it.id,
+        title: it.title,
+        image: it.image,
+        usedIngredientCount: used,
+        missedIngredientCount: missed,
+        usedIngredients: (it.usedIngredients || []).map((m: any) => m.original || m.name),
+        missedIngredients: (it.missedIngredients || []).map((m: any) => m.original || m.name),
+        matchScore: used / denom
+      };
+    }).sort((a: any, b: any) => b.matchScore - a.matchScore || a.missedIngredientCount - b.missedIngredientCount);
+
+    // cache for 5 minutes
+    cache.set(url, { results: normalized }, 60 * 5);
+    res.json({ results: normalized });
+  } catch (e: any) {
+    res.status(500).json({ error: e?.message ?? "Unknown error" });
+  }
+});

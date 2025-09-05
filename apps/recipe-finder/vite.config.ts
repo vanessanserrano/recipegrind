@@ -1,8 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react()],
-  // IMPORTANT: use your repo name here since GitHub Pages serves under /<repo>/
-  base: '/recipegrind/',
-})
+  base: mode === 'production' ? '/recipegrind/' : '/',
+}))
