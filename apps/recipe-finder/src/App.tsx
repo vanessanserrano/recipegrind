@@ -1,9 +1,20 @@
 import React from "react";
 import {
-  Container, Stack, TextField, MenuItem, Select, InputLabel,
-  FormControl, Slider, Button, Chip, Card, CardContent, Typography
+  Container,
+  Stack,
+  TextField,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
+  Slider,
+  Button,
+  Chip,
+  Card,
+  CardContent,
+  Typography,
+  Box
 } from "@mui/material";
-import Grid from "@mui/material/Unstable_Grid2"; // v5 path
 import { useQuery } from "@tanstack/react-query";
 import { searchRecipes } from "./lib/api";
 
@@ -19,12 +30,18 @@ export default function App() {
     enabled: false,
   });
 
-  React.useEffect(() => { refetch(); }, []);
+  React.useEffect(() => { refetch(); }, []); // initial fetch
 
   return (
     <Container sx={{ py: 4 }}>
       <Stack spacing={2}>
-        <TextField label="Search recipes" value={q} onChange={e=>setQ(e.target.value)} onKeyDown={(e)=> e.key==='Enter' && refetch()} />
+        <TextField
+          label="Search recipes"
+          value={q}
+          onChange={e=>setQ(e.target.value)}
+          onKeyDown={(e)=> e.key==='Enter' && refetch()}
+        />
+
         <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
           <FormControl sx={{ minWidth: 160 }}>
             <InputLabel id="diet-label">Diet</InputLabel>
@@ -62,23 +79,28 @@ export default function App() {
 
         {error ? <Typography color="error">Search failed. Try a different query.</Typography> : null}
 
-        <Grid container spacing={2}>
+        {/* Responsive CSS grid instead of MUI Grid */}
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(3, 1fr)" },
+            gap: 2
+          }}
+        >
           {data?.results?.map((r: any) => (
-            <Grid xs={12} sm={6} md={4} key={r.id}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6">{r.title}</Typography>
-                  <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: "wrap" }}>
-                    {r.readyInMinutes ? <Chip size="small" label={`${r.readyInMinutes} min`} /> : null}
-                    {r.vegan ? <Chip size="small" label="Vegan" /> : null}
-                    {r.vegetarian ? <Chip size="small" label="Vegetarian" /> : null}
-                    {r.glutenFree ? <Chip size="small" label="Gluten Free" /> : null}
-                  </Stack>
-                </CardContent>
-              </Card>
-            </Grid>
+            <Card key={r.id}>
+              <CardContent>
+                <Typography variant="h6">{r.title}</Typography>
+                <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: "wrap" }}>
+                  {r.readyInMinutes ? <Chip size="small" label={`${r.readyInMinutes} min`} /> : null}
+                  {r.vegan ? <Chip size="small" label="Vegan" /> : null}
+                  {r.vegetarian ? <Chip size="small" label="Vegetarian" /> : null}
+                  {r.glutenFree ? <Chip size="small" label="Gluten Free" /> : null}
+                </Stack>
+              </CardContent>
+            </Card>
           ))}
-        </Grid>
+        </Box>
 
         {isFetching ? <Typography>Loading…</Typography> : null}
       </Stack>
