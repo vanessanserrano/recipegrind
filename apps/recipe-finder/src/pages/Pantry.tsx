@@ -16,43 +16,40 @@ export default function Pantry() {
   const [selected, setSelected] = useState<string[]>([]);
   const [custom, setCustom] = useState("");
   const [ranking, setRanking] = useState<1|2>(1);
-
-  console.log("[Pantry] render. selected=", selected, "ranking=", ranking);
+  const [lastAdded, setLastAdded] = useState<string | null>(null);
 
   const { data, refetch, isFetching, error } = useQuery({
     queryKey: ["pantry", selected, ranking],
-    queryFn: async () => {
-      console.log("[Pantry] fetching with", selected);
-      const res = await findByIngredients(selected, { ranking, limit: 30 });
-      console.log("[Pantry] fetch result", res);
-      return res;
-    },
+    queryFn: async () => findByIngredients(selected, { ranking, limit: 30 }),
     enabled: false,
     retry: false,
   });
 
   const toggle = (name: string) => {
     const n = name.toLowerCase().trim();
-    setSelected((prev) => prev.includes(n) ? prev.filter(i => i !== n) : [...prev, n]);
+    setSelected((prev) => prev.includes(n) ? prev.filter(i => i !== n) : [n, ...prev]);
+    setLastAdded(n);
+    setTimeout(() => setLastAdded((curr) => (curr === n ? null : curr)), 1200);
   };
+
   const addCustom = () => {
     const n = custom.toLowerCase().trim();
     if (!n) return;
-    setSelected((prev) => prev.includes(n) ? prev : [...prev, n]);
+    setSelected((prev) => prev.includes(n) ? prev : [n, ...prev]);
     setCustom("");
+    setLastAdded(n);
+    setTimeout(() => setLastAdded((curr) => (curr === n ? null : curr)), 1200);
   };
 
   const results: any[] = useMemo(() => {
     try {
       const arr = Array.isArray(data?.results) ? (data!.results as any[]) : [];
       return arr;
-    } catch (e) {
-      console.error("[Pantry] results parse error:", e);
+    } catch {
       return [];
     }
   }, [data]);
 
-  // Render card list safely (never throws)
   const cards = useMemo(() => {
     try {
       return results.map((r: any) => {
@@ -90,11 +87,8 @@ export default function Pantry() {
           </Card>
         );
       });
-    } catch (e) {
-      console.error("[Pantry] render cards error:", e);
-      return [
-        <Typography key="err" color="error">Error rendering results. See console for details.</Typography>
-      ];
+    } catch {
+      return [<Typography key="err" color="error">Error rendering results.</Typography>];
     }
   }, [results]);
 
@@ -149,11 +143,30 @@ export default function Pantry() {
           </Button>
         </Stack>
 
+        {/* Selected display */}
+        <Stack spacing={1}>
+          <Typography variant="subtitle2">Your ingredients</Typography>
+          {selected.length ? (
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+              {selected.map((s) => (
+                <Chip
+                  key={s}
+                  label={s}
+                  onDelete={() => toggle(s)}
+                  variant={lastAdded === s ? "filled" : "outlined"}
+                  color={lastAdded === s ? "secondary" : "default"}
+                />
+              ))}
+            </Box>
+          ) : (
+            <Typography variant="body2" color="text.secondary">Pick a few ingredients to start.</Typography>
+          )}
+        </Stack>
+
         {isFetching && <LinearProgress />}
 
         {error ? <Typography color="error">Search failed. Try adding/removing items.</Typography> : null}
 
-        {/* Results/empty states */}
         {!!data && !isFetching && results.length === 0 && !error && (
           <Typography>No recipes match those ingredients. Try adding one or two more.</Typography>
         )}
